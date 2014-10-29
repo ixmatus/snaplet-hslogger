@@ -22,7 +22,7 @@ import           System.Log.Logger
 -- globally maintained anyway and this snaplet is just providing an
 -- easy default configuration for HSLogger.
 initLogger :: SnapletInit b ()
-initLogger = makeSnaplet "logger" description datadir $ do
+initLogger = makeSnaplet "hslogger" description datadir $ do
     conf <- getSnapletUserConfig
 
     logfile   <- liftIO $ require conf "log_file"
