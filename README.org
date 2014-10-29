@@ -1,0 +1,60 @@
+* Welcome!
+  [[https://hackage.haskell.org/package/snaplet-hslogger][https://img.shields.io/hackage/v/snaplet-hslogger.svg?style=flat]]
+  [[https://travis-ci.org/ixmatus/snaplet-hslogger][https://travis-ci.org/ixmatus/snaplet-hslogger.svg?branch=master]]
+  
+  =snaplet-hslogger= provides a convenience interface to the Haskell
+  [[http://hackage.haskell.org/package/hslogger][HSLogger]] package.
+
+  #+BEGIN_SRC
+  {-# LANGUAGE FlexibleInstances #-}
+  {-# LANGUAGE OverloadedStrings #-}
+  {-# LANGUAGE RecordWildCards   #-}
+  {-# LANGUAGE TemplateHaskell   #-}
+
+  module Main where
+
+  ------------------------------------------------------------------------------
+  import           Control.Applicative
+  import           Control.Lens
+  import           Data.ByteString.Char8 as C8
+  import           Data.Maybe            (fromMaybe)
+  import           Network.API.Mandrill  hiding (runMandrill)
+  import           Snap
+  import           Snap.Snaplet.Log
+  import           Text.Email.Validate
+
+  ------------------------------------------------------------------------------
+  data App = App
+      { _logger :: Snaplet LoggerState
+      }
+
+  makeLenses ''App
+
+  instance HasLogger (Handler b App) where
+      getLogger = with logger getLogger
+
+  ------------------------------------------------------------------------------
+  -- | The application's routes.
+  routes :: [(ByteString, Handler App App ())]
+  routes = [ ("/"            , writeText "hello")
+           , ("/foo"         , fooHandler)
+           ]
+
+  fooHandler :: Handler App App ()
+  fooHandler = do
+      log DEBUG "Message"
+      getResponse >>= finishWith
+
+
+  ------------------------------------------------------------------------------
+  -- | The application initializer.
+  app :: SnapletInit App App
+  app = makeSnaplet "app" "An snaplet example application." Nothing $ do
+      m <- nestSnaplet "logger" logger $ initLogger
+      addRoutes routes
+      return $ App m
+
+
+  main :: IO ()
+  main = serveSnaplet defaultConfig app
+  #+END_SRC
