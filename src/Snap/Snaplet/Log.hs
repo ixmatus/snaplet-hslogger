@@ -2,17 +2,26 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 
-module Snap.Snaplet.Logger
+module Snap.Snaplet.Log
   ( initLogger ) where
 
-import           Control.Applicative
+import           Control.Monad             (liftM)
+import           Control.Monad.IO.Class    (liftIO)
 import           Data.Configurator
-import           Paths_snaplet_logger
+import           Paths_snaplet_hslogger
 import           Snap.Snaplet
 import           System.Log
+import           System.Log.Formatter
+import           System.Log.Handler        (setFormatter)
+import           System.Log.Handler.Simple
+import           System.Log.Logger
 
 -- | Initialize the Logger Snaplet.
-initLogger :: SnapletInit b LoggerState
+--
+-- No custom `v` type here (just Unit) because the logger state is
+-- globally maintained anyway and this snaplet is just providing an
+-- easy default configuration for HSLogger.
+initLogger :: SnapletInit b ()
 initLogger = makeSnaplet "logger" description datadir $ do
     conf <- getSnapletUserConfig
 
@@ -21,14 +30,15 @@ initLogger = makeSnaplet "logger" description datadir $ do
     logformat <- liftIO $ require conf "log_format"
     logname   <- liftIO $ require conf "default_logger"
 
-    h <- fileHandler logfile loglevel >>= \lh -> return $
+    let lvl = (read loglevel) :: Priority
+    h <- liftIO $ fileHandler logfile lvl >>= \lh -> return $
         setFormatter lh (simpleLogFormatter logformat)
 
-    updateGlobalLogger logname (addHandler h)
-    updateGlobalLogger logname (setLevel loglevel)
+    liftIO $ updateGlobalLogger logname (addHandler h)
+    liftIO $ updateGlobalLogger logname (setLevel lvl)
 
-    noticeM logname $ "Configured the logger with a level of: " ++ (show loglevel)
+    liftIO $ noticeM logname $ "Configured the logger with a level of: " ++ (show loglevel)
 
   where
     description = "Snaplet for HSLogger library"
-    datadir = Just $ liftM (++"/resources/logger") getDataDir
+    datadir = Just $ liftM (++"/resources/hslogger") getDataDir
