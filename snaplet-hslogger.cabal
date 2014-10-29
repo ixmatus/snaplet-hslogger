@@ -1,5 +1,5 @@
 Name:                snaplet-hslogger
-Version:             1.0.0.1
+Version:             1.0.0.2
 Synopsis:            Snap framework snaplet for the Logger API library.
 Homepage:            https://github.com/ixmatus/snaplet-logger
 License:             BSD3

@@ -25,12 +25,13 @@ initLogger :: SnapletInit b ()
 initLogger = makeSnaplet "hslogger" description datadir $ do
     conf <- getSnapletUserConfig
 
-    logfile   <- liftIO $ require conf "log_file"
+    logname   <- liftIO $ require conf "default_logger"
     loglevel  <- liftIO $ require conf "log_level"
     logformat <- liftIO $ require conf "log_format"
-    logname   <- liftIO $ require conf "default_logger"
+    logfile   <- liftIO $ require conf "log_file"
 
     let lvl = (read loglevel) :: Priority
+
     h <- liftIO $ fileHandler logfile lvl >>= \lh -> return $
         setFormatter lh (simpleLogFormatter logformat)
 
