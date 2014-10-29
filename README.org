@@ -16,22 +16,17 @@
   ------------------------------------------------------------------------------
   import           Control.Applicative
   import           Control.Lens
-  import           Data.ByteString.Char8 as C8
-  import           Data.Maybe            (fromMaybe)
-  import           Network.API.Mandrill  hiding (runMandrill)
+  import           System.Log
   import           Snap
   import           Snap.Snaplet.Log
   import           Text.Email.Validate
 
   ------------------------------------------------------------------------------
   data App = App
-      { _logger :: Snaplet LoggerState
+      { _logger :: Snaplet ()
       }
 
   makeLenses ''App
-
-  instance HasLogger (Handler b App) where
-      getLogger = with logger getLogger
 
   ------------------------------------------------------------------------------
   -- | The application's routes.
@@ -50,7 +45,7 @@
   -- | The application initializer.
   app :: SnapletInit App App
   app = makeSnaplet "app" "An snaplet example application." Nothing $ do
-      m <- nestSnaplet "logger" logger $ initLogger
+      m <- nestSnaplet "hslogger" logger $ initLogger
       addRoutes routes
       return $ App m
 
